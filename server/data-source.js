@@ -8,7 +8,7 @@ const localConfig = {
   type: 'better-sqlite3',
   database: 'db.sqlite',
   synchronize: true,
-  logging: true
+  logging: false
 }
 
 // will use reaL DB from neon.com

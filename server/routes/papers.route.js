@@ -7,16 +7,19 @@ import {
   editPaper,
   deletePaper
 } from '../controllers/papers.controller.js'
+import {isAuthenticated} from '../middleware/auth.middleware.js'
+import { upload } from '../config/multer.config.js'
 
 const r = Router()
 
-r.route('/')
-  .get(getPapers)
-  .post(uploadPaper)
+r.get('/', getPapers)
+r.get('/:id', onePaper)
 
-r.route('/:id')
-  .get(onePaper)
-  .put(editPaper)
-  .delete(deletePaper)
+r.use(isAuthenticated)
+r.delete('/:id', deletePaper)
+r.use(upload.array('documents'))
+r.post('/', uploadPaper)
+r.put('/:id', editPaper)
+
 
 export default r;

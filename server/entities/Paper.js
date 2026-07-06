@@ -10,6 +10,14 @@ export default new EntitySchema({
       type: 'int',
       generated: true
     },
+    createdAt: {
+      type: 'datetime',
+      createDate: true
+    },
+    updatedAt: {
+      type: 'datetime',
+      updateDate: true
+    },
     title: {
       type: 'text'
     },
@@ -34,7 +42,9 @@ export default new EntitySchema({
     documents: {
       type: 'one-to-many',
       target: 'Document',
-      inverseSide: 'paper'
+      inverseSide: 'paper',
+      cascade: true,
+      orphanedRowAction: 'delete'
     }
   }
 })

@@ -10,6 +10,14 @@ export default new EntitySchema({
       primary: true,
       generated: true
     },
+    createdAt: {
+      type: 'datetime',
+      createDate: true
+    },
+    updatedAt: {
+      type: 'datetime',
+      updateDate: true
+    },
     username: {
       type: 'text'
     },
