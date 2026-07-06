@@ -135,6 +135,7 @@ export const editPaper = async(req, res) => {
 
 // please test this because I did not havce time to test it as I was going to do something
 // with the hard drive of my other pc. ciao
+// alright it was tested and It is looking good
 export const deletePaper = async(req, res) => {
   const { email } = req.user;
   const { id } = req.params
@@ -144,8 +145,12 @@ export const deletePaper = async(req, res) => {
 
     const paper = await paperRepo.findOneBy({ id: +id })
     if (!paper) return res.status(404).json({ success: false, message: `Upload with id ${id} was not found` })
+    
+    if (user.id !== paper.user.id) return res.status(403).json({ success: false, message: 'You do not have the permission to delete this upload!' })
 
     const result = await paperRepo.delete(paper)
+
+    if (result.affected === 0) return res.status(200).json({ success: false, message: 'Nothing to delete' })
 
     return res.status(200).json({success: true, message: `Successfully deleted upload!`, result  })
   } catch (err) {
