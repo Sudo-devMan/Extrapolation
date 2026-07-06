@@ -1,5 +1,14 @@
 
 import { userRepo } from '../data-source.js'
+import { deleteFile } from '../config/helpers.js'
+import * as path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+//console.log("Filename: ",__filename)
+//console.log("Dirname: ",__dirname)
 
 export const users = async(req, res) => {
   try {
@@ -27,20 +36,32 @@ export const user = async(req, res) => {
 export const editUser = async(req, res) => {
   let profilePicture = undefined;
 
-  if (req.file) {
-    if (!req.file.mimetype.toLowerCase().includes('image')) return res.status(400).json({success: false, message: 'Profile picture should be a picture!'  })
-    
-    // set this to aws s3 url for file in production
-    const filePath = `http://127.0.0.1:4000/${req.file.filename}`
-    
-    profilePicture = filePath
-  }
-
+  
   const { email, username, bio, userType} = req.body
   
   try {
     const user = await userRepo.findOneBy({ email: req.user.email })
-   
+    
+    if (req.file) {
+      if (!req.file.mimetype.toLowerCase().includes('image')) {
+        return res.status(400).json({success: false, message: 'Profile picture should be a picture!'  })
+      }
+    
+      if (user.profilePicture) {
+        const pp = user.profilePicture
+        console.log("Current pp:", pp)
+        const profilePicturePath = path.resolve(__dirname, '../uploads', pp.split('4000/')[1])
+        console.log("Full path: ", profilePicturePath)
+        const success = deleteFile(profilePicturePath)
+      }
+
+      // set this to aws s3 url for file in production
+      const filePath = `http://127.0.0.1:4000/${req.file.filename}`
+    
+      profilePicture = filePath
+    }
+
+
     if (email) {user.email = email}
     if (username) {user.username = username}
     if (profilePicture) {user.profilePicture = profilePicture}
