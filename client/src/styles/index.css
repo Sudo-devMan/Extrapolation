@@ -1,0 +1,28 @@
+
+@import "tailwindcss";
+
+@font-face {
+    font-family: 'nutino';
+    src: url('/fonts/Nunito-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'archivo';
+    src: url('/fonts/ArchivoBlack-Regular.ttf');
+}
+
+* {
+    font-family: 'nutino'
+}
+
+button:hover {
+    cursor: pointer
+}
+
+.nutino {
+    font-family: 'nutino'
+}
+
+.archivo {
+    font-family: 'archivo'
+}
