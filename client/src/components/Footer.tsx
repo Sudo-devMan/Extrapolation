@@ -3,7 +3,7 @@ function Footer() {
     return (
         <footer className="w-full p-3 bg-gray-300 border-t-3">
             <h1 className="archivo text-xl mb-3">ExtraPolation</h1>
-            <div className="grid sm:grid-cols-4 grid-cols-2">
+            {/* <div className="grid sm:grid-cols-4 grid-cols-2">
                 <div>
                     <h2 className="archivo">Links</h2>
                     <p>Home</p>
@@ -21,7 +21,7 @@ function Footer() {
                     <p>Contact</p>
                     <p>Services</p>
                 </div>
-            </div>
+            </div> */}
 
             <h1 className="m-4 text-center italic text-sm">&copy; {new Date().getFullYear()} Developed by <a href="https://github.com/Sudo-devMan" target="_blank" rel="noopener noreferrer">Devman</a></h1>
         </footer>

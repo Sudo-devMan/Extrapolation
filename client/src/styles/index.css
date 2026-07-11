@@ -12,7 +12,14 @@
 }
 
 * {
-    font-family: 'nutino'
+    font-family: 'nutino';
+}
+
+body {
+    background-image: url('/images/white-grid.jpg');
+    background-size: cover;
+    background-repeat: repeat;
+    color: #040c2c
 }
 
 button:hover {
