@@ -10,40 +10,40 @@ dotenv.config()
 const userRepo = getRepo(User)
 const SALT = Number(process.env.SALT)
 const SECRET = process.env.JWT_SECRET
-console.log("Secret: ", SECRET)
+// console.log("Secret: ", SECRET)
 
-export const signup = async(req, res) => {
+export const signup = async (req, res) => {
   const { username, email, password } = req.body;
-  if (!username) return res.status(400).json({success: false, message: 'Username is required!'});
-  if (!email) return res.status(400).json({success: false, message: 'Email is required!'});
-  if (!password) return res.status(400).json({success: false, message: 'Password is required!'})
-  
+  if (!username) return res.status(400).json({ success: false, message: 'Username is required!' });
+  if (!email) return res.status(400).json({ success: false, message: 'Email is required!' });
+  if (!password) return res.status(400).json({ success: false, message: 'Password is required!' })
+
   try {
     const emailUser = await userRepo.findOneBy({ email })
     if (emailUser) return res.status(401).json({ success: false, message: 'Email is already in use' })
-    
+
     const hash = await bcrypt.hash(password, SALT)
 
     const newUser = userRepo.create({ username, email, password: hash })
-    
+
     const created = await userRepo.save(newUser)
 
-    return res.status(201).json({ success: true, user: created })
+    return res.status(201).json({ success: true, message: "Successfully created account!", user: created })
   } catch (err) {
     console.error(err)
-    res.status(500).json({success: false, message: err.message})
+    res.status(500).json({ success: false, message: err.message })
   }
 
 }
 
 export const login = async (req, res) => {
-  const {email, password} = req.body;
+  const { email, password } = req.body;
   if (!email) return res.status(400).json({ success: false, message: 'Email is required!' })
   if (!password) return res.status(400).json({ success: false, message: 'Password is required!' })
 
   try {
     const user = await userRepo.findOneBy({ email })
-    if (!user) return res.status(401).json({success: false, message: 'User with that email does not exist!'})
+    if (!user) return res.status(401).json({ success: false, message: 'User with that email does not exist!' })
 
     const matchPassword = await bcrypt.compare(password, user.password)
 
@@ -59,18 +59,18 @@ export const login = async (req, res) => {
 
     const token = jwt.sign(payload, SECRET, { expiresIn: '1d' })
 
-    return res.status(200).json({ success: true, message: 'Login successful!', access_token: token })
+    return res.status(200).json({ success: true, message: 'Login successful!', access_token: token, user })
   } catch (err) {
     console.error(err)
-    res.status(500).json({success: false, message: err.message })
+    res.status(500).json({ success: false, message: err.message })
   }
 }
 
-export const changePassword = async(req, res) => {
+export const changePassword = async (req, res) => {
   const { old, newP } = req.body;
   const { email } = req.user;
   if (!old) return res.status(400).json({ success: false, message: 'Old password is required!' })
-  if (!newP) return res.status(400).json({success: false, message: 'New password is required!' })
+  if (!newP) return res.status(400).json({ success: false, message: 'New password is required!' })
 
   try {
     const user = await userRepo.findOneBy({ email })
