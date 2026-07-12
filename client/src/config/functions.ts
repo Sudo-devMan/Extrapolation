@@ -3,9 +3,23 @@ import type { Upload } from "./types";
 
 export async function fetchUploads(grade: number | string | undefined) {
     try {
-        const uploads = await api.get(`/papers/grade/${grade}`)
+        let uploads;
+        if (grade) { uploads = await api.get(`/papers/grade/${grade}`) }
+        else { uploads = await api.get('/papers') }
         if (uploads.status === 200) {
             return uploads
+        }
+    } catch (err) {
+        console.error(err)
+        return Promise.reject(err)
+    }
+}
+
+export async function fetchUpload(id: number | string | undefined) {
+    try {
+        const res = await api.get(`/papers/${id}`)
+        if (res.status === 200) {
+            return res
         }
     } catch (err) {
         console.error(err)

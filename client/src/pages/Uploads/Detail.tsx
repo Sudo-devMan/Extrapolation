@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import type { Upload } from "../../config/types"
 import Preview from "./Preview"
+import { fetchUpload } from "../../config/functions"
 
 function Detail() {
     const { id } = useParams()
@@ -10,13 +11,25 @@ function Detail() {
 
     useEffect(() => {
         // fetch upload
+        setLoading(true)
+        fetchUpload(id)
+            .then(u => { setUpload(u?.data.upload); console.log('U: ', u) })
+            .catch(err => alert(err.response.data.message))
+            .finally(() => setLoading(false))
     }, [])
     return (
-        <div>
-            This is the upload detail Page for upload with id: {id} Bruh
+        <>
+            {!loading ?
+                <div>
 
-            <Preview url="https://remshare.s3.eu-north-1.amazonaws.com/sharing/%C3%A2%C2%80%C2%9EAfter-everything-i-did-for-you_-_snowfall-_franklinsaint-_frxnklinswrld-_viral-_fy%28MP4%291783767505199RemshareDevman.mp4" />
-        </div>
+
+                    {upload && <Preview upload={upload} />}
+                </div>
+                :
+                <div>
+                    Loading....
+                </div>}
+        </>
     )
 }
 
