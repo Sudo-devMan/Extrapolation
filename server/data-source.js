@@ -11,14 +11,12 @@ const localConfig = {
   logging: false
 }
 
-// will use reaL DB from neon.com (This is just a placeholder and it is not used in any way, for now)
 const productionConfig = {
-  type: 'pg',
-  host: 'localhost',
-  port: 5432,
-  username: 'devman',
-  password: 'password',
-  database: 'polation'
+  type: 'postgres',
+  url: process.env.DB_URL,
+  synchronize: false,
+  logging: false,
+  migrations: [__dirname + "/migrations/*{.js,.ts}"]
 }
 
 export const dataSource = new DataSource({

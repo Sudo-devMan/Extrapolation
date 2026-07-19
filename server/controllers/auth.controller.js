@@ -15,7 +15,7 @@ const SECRET = process.env.JWT_SECRET
 export const signup = async (req, res) => {
   const { origin } = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
   const { username, email, password } = req.body;
-  const profilePicture = `${origin}/default.png`
+  const profilePicture = "https://extrapolation-9i7f.onrender.com/default.png"
   if (!username) return res.status(400).json({ success: false, message: 'Username is required!' });
   if (!email) return res.status(400).json({ success: false, message: 'Email is required!' });
   if (!password) return res.status(400).json({ success: false, message: 'Password is required!' })
