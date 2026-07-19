@@ -3,6 +3,11 @@ import { DataSource } from "typeorm"
 import User from './entities/User.js'
 import Paper from './entities/Paper.js'
 import Document from './entities/Document.js'
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const localConfig = {
   type: 'better-sqlite3',
