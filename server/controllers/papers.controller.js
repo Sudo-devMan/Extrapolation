@@ -1,15 +1,17 @@
 
-import { paperRepo, docRepo, userRepo } from '../data-source.js'
+import { paperRepo, docRepo, userRepo, dataSource } from '../data-source.js'
 import { fileURLToPath } from 'url'
 import * as path from 'path'
-import { deleteFile } from '../config/helpers.js'
+import { deleteFile, getFileUrl } from '../config/helpers.js'
+import { Like, Brackets, ILike } from 'typeorm'
+import Paper from '../entities/Paper.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export const getPapers = async (req, res) => {
   try {
-    const papers = await paperRepo.find({ relations: { documents: true, user: true } })
+    const papers = await paperRepo.find({ relations: { documents: true, user: true }, order: { createdAt: 'DESC' } })
     return res.status(200).json({ success: true, message: 'Papers fetched successfully', uploads: papers })
   } catch (err) {
     console.error(err)
@@ -21,7 +23,7 @@ export const getGradeNPapers = async (req, res) => {
   try {
     const { grade } = req.params;
     if (!grade) return res.status(400).json({ success: false, message: 'Please provide a grade in the url params' })
-    const paper = await paperRepo.find({ where: { grade: `Grade ${grade}` }, relations: { documents: true, user: true } })
+    const paper = await paperRepo.find({ where: { grade: `Grade ${grade}` }, relations: { documents: true, user: true }, order: { updatedAt: 'DESC' } })
     return res.status(200).json({ success: true, message: 'Papers fetched successfully', uploads: paper })
   } catch (err) {
     console.error(err)
@@ -33,11 +35,23 @@ export const myPapers = async (req, res) => {
   const { id } = req.user
   if (!id) return res.status(401).json({ success: false, message: 'User is not logged in' })
   try {
-    const my = await paperRepo.find({ where: { user: { id } } })
+    const my = await paperRepo.find({ where: { user: { id } }, relations: {documents: true, user: true}, order: { updatedAt: 'DESC' } })
     return res.status(200).json({ success: false, message: 'Uploads fetched successfully', uploads: my })
   } catch (err) {
     console.error(err)
     res.status(500).json({ success: false4, message: err.message })
+  }
+}
+
+export const papersFor = async(req, res) => {
+  const {id} = req.params;
+  if (!id) return res.status(400).json({ success: false, message: 'No user ID in the request params' })
+  try {
+    const papers = await paperRepo.find({ where: { user: {id} }, relations: {documents: true, user: true}, order: { updatedAt: 'DESC' } })
+    return res.status(200).json({ success: true, message: "Successfully fetched uploads", uploads: papers })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ success: false, message: err.message })
   }
 }
 
@@ -66,9 +80,7 @@ export const uploadPaper = async (req, res) => {
   if (!grade) return res.status(400).json({ success: false, message: 'Upload grade is required' })
   if (!math) return res.status(400).json({ success: false, message: 'Upload Math type is required' })
 
-  const documents = req.files.map(file => {
-    return `http://127.0.0.1:4000/${file.filename}`
-  })
+  const documents = req.files.map(getFileUrl)
 
   //console.log("Documents: ",documents)
 
@@ -122,14 +134,7 @@ export const editPaper = async (req, res) => {
 
     if (docsToDelete && docsToDelete.length !== 0) {
       //console.log("To delete: ", docsToDelete)
-      const paths = docsToDelete.map(t => {
-        const filename = path.basename(t)
-        return path.resolve(__dirname, '../uploads/', filename)
-      })
-      //console.log("Paths: ", paths)
-      for (let i = 0; i < paths.length; i++) {
-        deleteFile(paths[i])
-      }
+      await Promise.all(docsToDelete.map(deleteFile))
       paper.documents = paper.documents.filter(p => {
         return !docsToDelete.includes(p.url)
       })
@@ -141,8 +146,7 @@ export const editPaper = async (req, res) => {
       for (let i = 0; i < newDocuments.length; i++) {
         //console.log("Add paper")
         paper.documents.push({
-          url: `http://127.0.0.1:4000/${newDocuments[i].filename}`
-        })
+          url: getFileUrl(newDocuments[i])        })
       }
       //console.log("New in paper: ",paper.documents)
     }
@@ -171,7 +175,9 @@ export const deletePaper = async (req, res) => {
     if (!paper) return res.status(404).json({ success: false, message: `Upload with id ${id} was not found` })
 
     if (user.id !== paper.user.id) return res.status(403).json({ success: false, message: 'You do not have the permission to delete this upload!' })
-
+    await Promise.all(
+  paper.documents.map(doc => deleteFile(doc.url))
+);
     const result = await paperRepo.delete(paper)
 
     if (result.affected === 0) return res.status(200).json({ success: false, message: 'Nothing to delete' })
@@ -182,3 +188,43 @@ export const deletePaper = async (req, res) => {
     res.status(500).json({ success: false, message: err.message })
   }
 }
+
+export const searchPaper = async (req, res) => {
+  const query = req.query.query ?? "";
+
+  try {
+    const searched = await dataSource
+      .getRepository(Paper)
+      .createQueryBuilder("paper")
+      .leftJoinAndSelect("paper.user", "user")
+      .leftJoinAndSelect("paper.documents", "documents")
+      .where("LOWER(paper.title) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
+      .orWhere("CAST(paper.updatedAt AS TEXT) LIKE :query", {
+        query: `%${query}%`,
+      })
+      .orWhere("LOWER(paper.grade) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
+      .orWhere("LOWER(user.username) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
+      .orWhere("LOWER(paper.math) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
+      .getMany();
+
+    res.status(200).json({
+      success: true,
+      message: "Success search!",
+      uploads: searched.reverse(),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};

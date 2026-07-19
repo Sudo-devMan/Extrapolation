@@ -11,7 +11,7 @@ const localConfig = {
   logging: false
 }
 
-// will use reaL DB from neon.com
+// will use reaL DB from neon.com (This is just a placeholder and it is not used in any way, for now)
 const productionConfig = {
   type: 'pg',
   host: 'localhost',

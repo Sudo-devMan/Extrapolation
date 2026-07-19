@@ -21,9 +21,12 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(morgan('tiny'))
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false,
+  xFrameOptions: false
 }))
 app.use(express.static('./uploads/'))
+app.use(express.static('./assets'))
 
 // routing
 app.use('/papers', papers)

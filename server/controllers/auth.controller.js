@@ -13,7 +13,9 @@ const SECRET = process.env.JWT_SECRET
 // console.log("Secret: ", SECRET)
 
 export const signup = async (req, res) => {
+  const { origin } = new URL(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
   const { username, email, password } = req.body;
+  const profilePicture = `${origin}/default.png`
   if (!username) return res.status(400).json({ success: false, message: 'Username is required!' });
   if (!email) return res.status(400).json({ success: false, message: 'Email is required!' });
   if (!password) return res.status(400).json({ success: false, message: 'Password is required!' })
@@ -24,7 +26,7 @@ export const signup = async (req, res) => {
 
     const hash = await bcrypt.hash(password, SALT)
 
-    const newUser = userRepo.create({ username, email, password: hash })
+    const newUser = userRepo.create({ username, email, password: hash, profilePicture })
 
     const created = await userRepo.save(newUser)
 
@@ -43,7 +45,7 @@ export const login = async (req, res) => {
 
   try {
     const user = await userRepo.findOneBy({ email })
-    if (!user) return res.status(401).json({ success: false, message: 'User with that email does not exist!' })
+    if (!user) return res.status(404).json({ success: false, message: 'User with that email does not exist!' })
 
     const matchPassword = await bcrypt.compare(password, user.password)
 
@@ -57,7 +59,7 @@ export const login = async (req, res) => {
       profilePicture: user.profilePicture
     }
 
-    const token = jwt.sign(payload, SECRET, { expiresIn: '1d' })
+    const token = jwt.sign(payload, SECRET, { expiresIn: '7d' })
 
     return res.status(200).json({ success: true, message: 'Login successful!', access_token: token, user })
   } catch (err) {
