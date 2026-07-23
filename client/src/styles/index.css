@@ -16,10 +16,16 @@
 }
 
 body {
-    background-image: url('/images/white-grid.jpg');
-    background-size: cover;
-    background-repeat: repeat;
+    margin: 0;
     color: #040c2c
+}
+
+body::before {
+content: "";
+position: fixed;
+inset: 0;
+background: url("bg.jpg") center cover no-repeat;
+index: -1;
 }
 
 button:hover {
